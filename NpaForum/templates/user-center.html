@@ -1,0 +1,102 @@
+{% extends 'base.html' %}
+{% load staticfiles %}
+
+{% block title %}
+&raquo;用户中心
+{% endblock %}
+
+{% block content %}
+    <div class="main col-md-8">
+                    <div class="box">
+                        <div class="clearfix box-header">
+                            <div class="pull-left">
+                            <img class="avatar-large" src="{{ MEDIA_URL }}{{ user.image }}" alt=""></div>
+                            <div class="pull-left">
+                                <div class="pull-right">
+                                    <a class="btn-add-fav" href="#"  data-fav-type="user"
+                                       data-fav-id="{{ user.id }}">
+                                        {% if has_fav_user %}取消关注{% else %}关注此人{% endif %}</a></div>
+                            <h2>{{ user.username }}</h2>
+                            <span>npa 第 {{ user.id }} 号会员，加入于 {{ user.date_joined }}</span></div>
+                        </div>
+                    </div>
+                    <div class="sep20 back-gray"></div>
+                    <div class="box">
+                        <div class="cell"><p>{{ user.username }}创建的主题</p></div>
+                    {% if topic_list.object_list %}
+                        <ul>
+                            {% for topic in topic_list.object_list %}
+                            <li>
+                            <div class="item row">
+                                <div class="col-md-1"><img class="avatar" src="{{ MEDIA_URL }}{{ topic.created_by.image }}" alt=""></div>
+                                <div class="col-md-10">
+                                    <div class="item-title"><a href="{% url 'topic_detail' topic.id %}">{{ topic.title }}</a></div>
+                                        <small>
+                                                <a href="" class="node-small">{{ topic.node.name }}</a>
+                                                <span>&nbsp;&bull;&nbsp;</span>
+                                                <strong><a href="">{{ topic.created_by.username }}</a></strong>
+                                                <span>&nbsp;&bull;&nbsp;</span>
+                                                <span>{{ topic.time_span }}</span>
+                                                {% if topic.last_reply %}
+                                                    {% for reply in  topic.last_reply %}
+                                                    <span>&nbsp;&bull;&nbsp;</span>
+                                                    <span>最后回复来自&nbsp;
+                                                        <a href=""><strong>{{ reply.created_by.username }}</strong></a>
+                                                    {% endfor %}
+                                                </span>
+                                                {% endif %}
+                                        </small>
+                                </div>
+                                <div class="col-md-1">
+                                <a class="reply-nums" href="{% url 'topic_detail' topic.id %}">{{ topic.reply_set.all.count }}</a>
+                                </div>
+                            </div>
+                        </li>
+                        {% endfor %}
+                        </ul>
+                        <ul class="page-list">
+                            {% if topic_list.has_previous %}
+                            <li class="page-normal"><a href="?{{ topic_list.previous_page_number.querystring }}">上一页</a></li>
+                            {% else %}
+
+                            {% endif %}
+
+                            {% for page in topic_list.pages %}
+                                {% if page %}
+                                    {% ifequal page topic_list.number %}
+                                        <li class="page-active"><a href="?page=1">{{ page }}</a></li>
+                                    {% else %}
+                                        <li class="page-normal"><a href="?{{ page.querystring }}" class="page">{{ page }}</a></li>
+                                    {% endifequal %}
+                                {% else %}
+                                    <li class="page-normal"><a href="">...</a></li>
+                                {% endif %}
+                            {% endfor %}
+
+                            {% if topic_list.has_next %}
+                                <li class="page-normal"><a href="?{{ topic_list.next_page_number.querystring }}">下一页</a></li>
+                            {% endif %}
+
+                        </ul>
+                    {% else %}
+                        <div class="cell">
+                        <span>您还没有创建过主题</span>
+                        </div>
+                    {% endif %}
+                    </div>
+                </div>
+{% endblock %}
+
+{% block custom_js %}
+    <script type="text/javascript" src="{% static 'js/functions.js' %}" ></script>
+    <script>
+    var csrftoken = "{{ csrf_token }}"
+
+    $(function () {
+        $('.btn-add-fav').click(function () {
+                addFav($(this))
+            })
+    })
+    </script>
+{% endblock %}
+

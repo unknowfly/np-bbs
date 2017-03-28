@@ -1,0 +1,17 @@
+{% extends 'base-no-sidebar.html' %}
+{% load staticfiles %}
+
+{% block title %}
+404
+{% endblock %}
+
+{% block content %}
+    <div class="error-wrapper">
+        <div>
+            <img class="pic-error" src="{% static 'image/error.png' %}" alt="">
+            <h2>500 Errors 请求发生了错误</h2>
+            <a href="{% url 'index' %}">返回首页</a>
+        </div>
+    </div>
+{% endblock %}
+

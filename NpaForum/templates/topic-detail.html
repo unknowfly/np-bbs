@@ -1,0 +1,186 @@
+{% extends 'base.html' %}
+{% load staticfiles %}
+
+{% block title %}
+&raquo;{{ topic.title }}
+{% endblock %}
+
+{% block content %}
+      <div class="main col-md-8">
+            <div class="bread">
+                <a href="{% url 'index' %}">npa</a>
+                <span> &raquo; </span>
+                <span><a href="{% url 'node_detail' topic.node.id %}">{{ topic.node.name }}</a></span>
+            </div>
+            <div class="box">
+              <div class="topic-header clearfix" data-topic-id="{{ topic.id }}">
+                <div class="topic-avatar"><img class="avatar-large" src="{{ MEDIA_URL }}{{ topic.created_by.image }}" alt=""></div>
+                <h3>{{ topic.title }}</h3>
+                <small><strong><a href="">{{ topic.created_by.username }}</a></strong>
+                    <span>&nbsp;&bull;&nbsp;</span>
+                    <span>{{ topic.time_span }}</span>
+                    <span>&nbsp;&bull;&nbsp;</span>
+                    {{ topic.click_nums }} 次点击</small>
+              </div>
+              <div class="topic-body">
+                {% autoescape off %}
+                {{ topic.content }}
+                {% endautoescape %}
+              </div>
+              <div class="topic-buttons container-fluid">
+                <div class="pull-left">
+                  <a href="#" class="btn-add-fav" data-fav-type="topic" data-fav-id="{{ topic.id }}"
+                  >{% if has_fav_topic %}取消收藏{% else %} 加入收藏{% endif %}</a>
+                </div>
+                <div class="pull-right">
+                  <span>{{ topic.click_nums }} 次点击  ∙  {{ topic.fav_nums }} 人收藏</span>
+                </div>
+              </div>
+            </div>
+            <div class="sep20 back-gray"></div>
+            <div class="box">
+              <div class="reply-info">
+                <span>回复 [ {{ topic.reply_set.all.count }} ]  &nbsp;&Iota;&nbsp;{% if topic.last_reply_time %}
+                    最新回复 {{ topic.last_reply_time }}{% endif %}</span>
+              </div>
+              <div class="reply-list">
+                  {% for reply in reply_list.object_list %}
+                    <div class="item row">
+                  <div class="col-md-1"><img class="avatar" src="{{ MEDIA_URL }}{{ reply.created_by.image }}" alt=""></div>
+                  <div class="col-md-11">
+                      <div>
+                        <strong><a href="">{{ reply.created_by.username }}</a></strong> &nbsp;<span class="text-small">{{ reply.add_time }}</span>
+                        <div class="pull-right">
+                          <small class="snow">
+                              <a data-username="{{ reply.created_by.username }}" class="reply_one" href="#;">
+                                  <img class="img-auto" border="0" align="absmiddle" alt="Reply" src="{% static 'image/reply.png' %}">
+                              </a>
+                              &nbsp;&nbsp;•&nbsp;&nbsp;
+                              <span class="no"> {{ reply.seq_num }} 楼 </span>
+                            </small>
+                        </div>
+                      </div>
+                      <div class="reply_content">
+                      {% autoescape off %}
+                          {{ reply.content }}
+                      {% endautoescape %}
+                      </div>
+                  </div>
+                </div>
+                  {% endfor %}
+                  <ul class="page-list">
+                            {% if reply_list.has_previous %}
+                            <li class="page-normal"><a href="?{{ reply_list.previous_page_number.querystring }}">上一页</a></li>
+                            {% else %}
+
+                            {% endif %}
+
+                            {% for page in reply_list.pages %}
+                                {% if page %}
+                                    {% ifequal page reply_list.number %}
+                                        <li class="page-active"><a href="?page=1">{{ page }}</a></li>
+                                    {% else %}
+                                        <li class="page-normal"><a href="?{{ page.querystring }}" class="page">{{ page }}</a></li>
+                                    {% endifequal %}
+                                {% else %}
+                                    <li class="page-normal"><a href="">...</a></li>
+                                {% endif %}
+                            {% endfor %}
+
+                            {% if reply_list.has_next %}
+                                <li class="page-normal"><a href="?{{ reply_list.next_page_number.querystring }}">下一页</a></li>
+                            {% endif %}
+
+                        </ul>
+              </div>
+            </div>
+            <div class="sep20 back-gray"></div>
+            <div class="box">
+                {% if request.user.is_authenticated %}
+                        <div class="cell text-small">
+                <span>添加一条新回复</span>
+                <div class="pull-right"><a href="#">回到顶部</a></div>
+              </div>
+                        <div class="editor_wrap">
+                <form method="post" action="/t/345879">
+                <textarea name="content" maxlength="10000" class="mll" id="reply_content" style="overflow: hidden; word-wrap: break-word; resize: none; height: 112px;"></textarea>
+                <div class="pull-right">
+                    <span class="text-gray"></span>
+                </div>
+                <input type="button" id="btn_reply" onclick="replyTopic()" value="回复" class="btn btn-default">
+                </form>
+              </div>
+                {% else %}
+                    <div class="text-center">
+                    <div class="sep10"></div>
+                        <span><a href="{% url 'login' %}">登录</a>后发表回复</span>
+                    <div class="sep10"></div>
+                    </div>
+                {% endif %}
+
+            </div>
+      </div>
+{% endblock %}
+
+{% block custom_css %}
+    <link rel="stylesheet" href="{% static 'css/vendors/simplemde.min.css' %}">
+    <style type="text/css">
+    .CodeMirror, .CodeMirror-scroll {
+	    min-height: 200px;
+        }
+    </style>
+{% endblock %}
+
+{% block custom_js %}
+    <script type="text/javascript" src="{% static 'js/vendors/simplemde.min.js' %}" ></script>
+    <script type="text/javascript" src="{% static 'js/functions.js' %}" ></script>
+    <script>
+    var editor = null;
+    var csrftoken = "{{ csrf_token }}"
+
+        $(function () {
+            editor = new SimpleMDE({ element: $("#reply_content")[0] });
+
+            $('.btn-add-fav').click(function () {
+                addFav($(this))
+            })
+            
+            $(".reply_one").click(function () {
+                var content = editor.value();
+                content += '@[' + $(this).attr('data-username') +']() '
+                editor.value(content)
+            })
+        })
+
+    //回复主题
+    function replyTopic() {
+        var content = editor.value();
+
+        if(!$.trim(content)){
+                alert('内容不能为空');
+                return;
+            }
+
+        $.ajax({
+                cache: false,
+                type: 'post',
+                url: '{% url "topic_reply" %}',
+                data : {'topic_id': $('.topic-header').attr('data-topic-id'),
+                        'content': content},
+                async: false,
+                beforeSend:function (xhr, settings) {
+                    xhr.setRequestHeader('X-CSRFToken', '{{ csrf_token }}')
+                },
+                success:function (data) {
+                    if(data.success){
+                        alert('回复成功')
+                        window.location.reload()
+                    }else{
+                        alert('回复失败！')
+                    }
+                }
+            })
+    }
+
+    </script>
+{% endblock %}

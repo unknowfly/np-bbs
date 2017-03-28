@@ -1,0 +1,99 @@
+{% extends 'base.html' %}
+
+{% block title %}
+&raquo;注册
+{% endblock %}
+
+{% block content %}
+    <div class="main col-md-8">
+        <div class="box">
+    <div class="bread">
+        <a href="{% url 'index' %}">npa</a>
+        <span> &raquo; </span>
+        <span>注册</span>
+    </div>
+    <div class="sep20"></div>
+    <div class="msg_box">
+    {% if register_form.errors %}
+        <ul class="error-list">
+        <strong>请解决以下问题后再提交</strong>
+        {% for k, v in register_form.errors.items %}
+            <li class="text-red">{{ v }}</li>
+        {% endfor %}
+        </ul>
+    {% endif %}
+    </div>
+        {% if register_success %}
+            <div class="text-center" style="height: 200px;">
+                <h3 class="text-blue">注册成功! 欢迎来到npa社区</h3>
+                <div class="sep20"></div>
+                <p>即将跳转到登录页</p>
+            </div>
+            <script>
+                setTimeout(function () {
+                    window.location.href = "{% url 'login' %}"
+                }, 3500)
+            </script>
+        {% else %}
+            <form class="form-horizontal" method="post" id="register_form">
+              <div class="form-group">
+                <label for="inputEmail3" class="col-sm-2 control-label">用户名</label>
+                <div class="col-sm-5">
+                  <input type="text" class="form-control" name="username" value="{{ register_form.username.value }}" placeholder="请使用字母与数字的组合，4-20个字符">
+                </div>
+              </div>
+              <div class="form-group">
+                <label for="inputEmail3" class="col-sm-2 control-label">邮箱</label>
+                <div class="col-sm-5">
+                  <input type="email" class="form-control" name="email" value="{{ register_form.email.value }}" placeholder="请输入有效的邮箱">
+                </div>
+              </div>
+              <div class="form-group">
+                <label for="inputPassword3" class="col-sm-2 control-label">密码</label>
+                <div class="col-sm-5">
+                  <input type="password" class="form-control" name="password" placeholder="请输入密码">
+                </div>
+              </div>
+              <div class="form-group">
+                <label for="inputPassword3" class="col-sm-2 control-label">确认密码</label>
+                <div class="col-sm-5">
+                  <input type="password" class="form-control" name="password_2" placeholder="再次输入密码">
+                </div>
+              </div>
+              <div class="form-group">
+                <label for="id_captcha_1" class="col-sm-2 control-label">验证码</label>
+                <div class="col-sm-5">
+                  {{ register_form.captcha }}
+                </div>
+              </div>
+              <div class="form-group">
+                <div class="col-sm-offset-2 col-sm-5">
+                  <button type="submit" class="btn btn-default">注册</button>
+                </div>
+              </div>
+                {% csrf_token %}
+            </form>
+        {% endif %}
+        </div>
+    </div>
+{% endblock %}
+
+{% block custom_js %}
+<script>
+//刷新验证码
+function refresh_captcha(event){
+    $.get("/captcha/refresh/?"+Math.random(), function(result){
+        $('#'+event.data.form_id+' .captcha').attr("src",result.image_url);
+        $('#id_captcha_0').attr("value",result.key);
+    });
+    return false;
+}
+
+$(function () {
+    $("#id_captcha_1").addClass("form-control")
+
+    $('#register_form .captcha').click({'form_id':'register_form'},refresh_captcha);
+})
+
+</script>
+{% endblock %}

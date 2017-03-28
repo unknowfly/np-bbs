@@ -1,0 +1,173 @@
+{% extends 'base.html' %}
+{% load staticfiles %}
+
+{% block title %}
+&raquo;用户设置
+{% endblock %}
+
+{% block content %}
+    <div class="main col-md-8">
+                    <div class="bread">
+                            <a href="{% url 'index' %}">npa</a>
+                            <span> &raquo; </span>
+                            <span>设置</span>
+                    </div>
+                    <div class="box">
+                        <div class="clearfix box-header">
+                            <div class="pull-left">
+                                <img class="avatar-large" src="{{ MEDIA_URL }}{{ request.user.image }}" alt="">
+                            </div>
+                            <div class="pull-left">
+                            <form class="form-horizontal" method="post" action="{% url 'user:user_setting' %}">
+                              <div class="form-group">
+                                <label for="email" class="col-sm-2 control-label">邮箱</label>
+                                <div class="col-sm-7">
+                                  <input type="email" class="form-control" name="email" value="{{ request.user.email }}" readonly>
+                                </div>
+                              </div>
+                              <div class="form-group">
+                                <label for="email" class="col-sm-2 control-label">性别</label>
+                                <div class="col-sm-7" style="top: 6px;">
+                                  <input type="radio" id="radio-male" name="gender" value="male"
+                                         {% if request.user.gender == 'male' %}checked="checked"{% endif %}>
+                                    <label for="radio-male">男</label>
+                                  <input type="radio" id="radio-female"  name="gender" value="female"
+                                         {% if request.user.gender == 'female' %}checked="checked"{% endif %}>
+                                    <label for="radio-female">女</label>
+                                </div>
+                              </div>
+                              <div class="form-group">
+                                <label for="birthday" class="col-sm-2 control-label">生日</label>
+                                <div class="col-sm-7">
+                                  <input type="date" class="form-control" name="birthday" value="{{ request.user.birthday|date:"Y-m-d" }}">
+                                </div>
+                              </div>
+                              <div class="form-group">
+                                <label for="email" class="col-sm-2 control-label">地址</label>
+                                <div class="col-sm-7">
+                                  <input type="text" class="form-control" name="address" value="{{ request.user.address }}">
+                                </div>
+                              </div>
+                              <div class="form-group">
+                                <label for="website" class="col-sm-2 control-label">个人网站</label>
+                                <div class="col-sm-7">
+                                  <input type="text" class="form-control" name="website" value="{{ request.user.website }}">
+                                </div>
+                              </div>
+                              <div class="form-group">
+                                <div class="col-sm-offset-2 col-sm-5">
+                                  <button type="submit" class="btn btn-default">保存</button>
+                                </div>
+                              </div>
+                                {% csrf_token %}
+                            </form>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="sep20 back-gray"></div>
+                    <div class="bread">
+                            <a href="{% url 'index' %}">npa</a>
+                            <span> &raquo; </span>
+                            <span>修改头像</span>
+                    </div>
+                    <div class="box">
+                        <div class="box-header">
+                            <div class="text-center cell">
+                                <img class="avatar-large" src="{{ MEDIA_URL }}{{ request.user.image }}" alt="">
+                                <img class="avatar-middle" src="{{ MEDIA_URL }}{{ request.user.image }}" alt="">
+                                <img class="avatar-small" src="{{ MEDIA_URL }}{{ request.user.image }}" alt="">
+                            </div>
+                            <div class="cell text-center">
+                                <form action="{% url 'user:user_image_upload' %}" method="post" enctype="multipart/form-data">
+                                    <input type="file" name="image">
+                                    <button type="submit" class="btn btn-default">保存</button>
+                                    {% csrf_token %}
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="sep20 back-gray"></div>
+                    <div class="bread">
+                            <a href="{% url 'index' %}">npa</a>
+                            <span> &raquo; </span>
+                            <span>修改密码</span>
+                    </div>
+                    <div class="box">
+                        <div class="clearfix box-header">
+                            <div class="pull-left">
+                                <img class="avatar-large" src="{{ MEDIA_URL }}{{ request.user.image }}" alt="">
+                            </div>
+                            <div class="pull-left">
+                            <form class="form-horizontal" method="post">
+                              <div class="form-group">
+                                <label for="password" class="col-sm-2 control-label">旧密码</label>
+                                <div class="col-sm-7">
+                                  <input type="password" class="form-control" id="password_old" >
+                                </div>
+                              </div>
+                              <div class="form-group">
+                                <label for="password" class="col-sm-2 control-label">新密码</label>
+                                <div class="col-sm-7">
+                                  <input type="password" class="form-control" id="password_new" >
+                                </div>
+                              </div>
+                              <div class="form-group">
+                                <div class="col-sm-offset-2 col-sm-5">
+                                  <button id="btn-md-pwd" type="button" class="btn btn-default">保存</button>
+                                </div>
+                              </div>
+                                {% csrf_token %}
+                            </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+{% endblock %}
+
+{% block custom_js %}
+    <script>
+    $(function () {
+        $('#btn-md-pwd').click(function () {
+            modify_pwd()
+        })
+    })
+
+    //回复主题
+    function modify_pwd() {
+        var pwd_old = $("#password_old").val()
+        var pwd_new = $("#password_new").val()
+
+        if(!$.trim(pwd_old)){
+                alert('旧密码不能为空');
+                return;
+            }
+
+        if(!$.trim(pwd_new)){
+            alert('新密码不能为空');
+            return;
+        }
+
+        $.ajax({
+                cache: false,
+                type: 'post',
+                url: '{% url "user:user_modify_pwd" %}',
+                data : {'password_old': pwd_old,
+                        'password_new': pwd_new},
+                async: false,
+                beforeSend:function (xhr, settings) {
+                    xhr.setRequestHeader('X-CSRFToken', '{{ csrf_token }}')
+                },
+                success:function (data) {
+                    if(data.success){
+                        alert('修改成功')
+                        window.location.href = '{% url 'login' %}
+                    }else{
+                        alert(data.msg)
+                    }
+                }
+            })
+    }
+
+    </script>
+{% endblock %}
+

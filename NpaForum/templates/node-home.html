@@ -1,0 +1,186 @@
+{% extends 'base.html' %}
+{% load staticfiles %}
+
+{% block title %}
+&raquo;{{ node.name }}
+{% endblock %}
+
+{% block content %}
+    <div class="main col-md-8">
+                    <div class="box-header clearfix">
+                        <div class="pull-left">
+                            <img src="{{ MEDIA_URL }}{{ node.image }}" class="avatar-large round" alt="">
+                        </div>
+                        <div class="pull-left">
+                            <div>
+                                <a href="{% url 'index' %}">npa</a>
+                                <span> &raquo; </span>
+                                <strong>{{ node.name }}</strong>
+                                <div class="pull-right">
+                                    <span class="text-gray">主题数 {{ topic_count }}&nbsp;</span>
+                                    <span class="text-gray">&nbsp;&bull;&nbsp;&nbsp;</span>
+                                    <a href="#" class="btn-add-fav" data-fav-type="node" data-fav-id="{{ node.id }}"
+                                    >{% if has_fav_node %}取消收藏{% else %} 加入收藏{% endif %}</a>
+                                </div>
+                            </div>
+                            <p class="text-gray">{{ node.desc }}</p>
+                            <div>
+                                <a href="{% url 'create_topic' %}" class="btn btn-default">创建新主题</a>
+                            </div>
+                        </div>
+                    </div>
+                    {% if topic_list.object_list %}
+                        <ul>
+                        {% for topic in topic_list.object_list %}
+                            <li>
+                            <div class="item row">
+                                <div class="col-md-1"><img class="avatar" src="{{ MEDIA_URL }}{{ topic.created_by.image }}" alt=""></div>
+                                <div class="col-md-10">
+                                    <div class="item-title"><a href="{% url 'topic_detail' topic.id %}">{{ topic.title }}</a></div>
+                                        <small>
+                                                <a href="" class="node-small">{{ topic.node.name }}</a>
+                                                <span>&nbsp;&bull;&nbsp;</span>
+                                                <strong><a href="">{{ topic.created_by.username }}</a></strong>
+                                                <span>&nbsp;&bull;&nbsp;</span>
+                                                <span>{{ topic.time_span }}</span>
+                                                {% if topic.last_reply %}
+                                                    {% for reply in  topic.last_reply %}
+                                                    <span>&nbsp;&bull;&nbsp;</span>
+                                                    <span>最后回复来自&nbsp;
+                                                        <a href=""><strong>{{ reply.created_by.username }}</strong></a>
+                                                    {% endfor %}
+                                                </span>
+                                                {% endif %}
+                                        </small>
+                                </div>
+                                <div class="col-md-1">
+                                <a class="reply-nums" href="{% url 'topic_detail' topic.id %}">{{ topic.reply_set.all.count }}</a>
+                                </div>
+                            </div>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                        <ul class="page-list">
+                            {% if topic_list.has_previous %}
+                            <li class="page-normal"><a href="?{{ topic_list.previous_page_number.querystring }}">上一页</a></li>
+                            {% else %}
+
+                            {% endif %}
+
+                            {% for page in topic_list.pages %}
+                                {% if page %}
+                                    {% ifequal page topic_list.number %}
+                                        <li class="page-active"><a href="?page=1">{{ page }}</a></li>
+                                    {% else %}
+                                        <li class="page-normal"><a href="?{{ page.querystring }}" class="page">{{ page }}</a></li>
+                                    {% endifequal %}
+                                {% else %}
+                                    <li class="page-normal"><a href="">...</a></li>
+                                {% endif %}
+                            {% endfor %}
+
+                            {% if topic_list.has_next %}
+                                <li class="page-normal"><a href="?{{ topic_list.next_page_number.querystring }}">下一页</a></li>
+                            {% endif %}
+
+                        </ul>
+                    {% else %}
+                        <div class="cell">
+                        <span>此节点下还没有主题</span>
+                        </div>
+                    {% endif %}
+
+                    <div class="sep20 back-gray"></div>
+                    <div class="box">
+                        {% if request.user.is_authenticated %}
+                            <div class="cell">
+                            <form action="{% url 'create_topic' %}" method="post">
+                            <div><input type="text" id="txt_topic_title" name="title" class="form-control" placeholder="请在此输入您的标题"></div>
+                            <div class="sep10"></div>
+                            <div><textarea name="content" maxlength="10000" class="mll" id="txt_topic_content"
+                            style="overflow: hidden; word-wrap: break-word; resize: none;"></textarea></div>
+                            <div>
+                                <input type="hidden" value="{{ node.id }}" id="txt_node" name="node">
+                            </div>
+                            <div class="publish-box"><input type="button" value="发布主题" class="btn btn-default" onclick="publishTopic()"></div>
+                        </form>
+                        </div>
+                        {% else %}
+                            <div class="text-center">
+                            <div class="sep10"></div>
+                                <span><a href="{% url 'login' %}">登录</a>后发表主题</span>
+                            <div class="sep10"></div>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+{% endblock %}
+
+{% block custom_css %}
+    <link rel="stylesheet" href="{% static 'css/vendors/simplemde.min.css' %}">
+    <style type="text/css">
+    .CodeMirror, .CodeMirror-scroll {
+	    min-height: 200px;
+        }
+    </style>
+{% endblock %}
+
+{% block custom_js %}
+    <script type="text/javascript" src="{% static 'js/vendors/simplemde.min.js' %}" ></script>
+    <script type="text/javascript" src="{% static 'js/functions.js' %}" ></script>
+    <script>
+    var editor = null;
+    var csrftoken = "{{ csrf_token }}"
+
+    $(function () {
+        editor = new SimpleMDE({ element: $("#reply_content")[0] });
+
+        $('.btn-add-fav').click(function () {
+                addFav($(this))
+            })
+    })
+
+    //发布主题
+    function publishTopic () {
+        var title = $("#txt_topic_title").val();
+        var content = editor.value();
+        var node = $("#txt_node").val();
+
+        if(!$.trim(title)){
+            alert('标题不能为空');
+            return;
+        }
+
+        if(!$.trim(content)){
+            alert('内容不能为空');
+            return;
+        }
+
+        if(!$.trim(node)){
+            alert('请选择一个节点');
+            return;
+        }
+
+        $.ajax({
+            cache: false,
+            type: 'post',
+            url: '{% url "create_topic" %}',
+            data : {'title': title,
+                    'content': content,
+                    'node': node},
+            async: false,
+            beforeSend:function (xhr, settings) {
+                xhr.setRequestHeader('X-CSRFToken', '{{ csrf_token }}')
+            },
+            success:function (data) {
+                if(data.success){
+                    alert('发布成功');
+                    window.location.href = '/topic/'+data.topic_id
+                }else{
+                    alert('发布失败！')
+                }
+            }
+        })
+    }
+    </script>
+{% endblock %}

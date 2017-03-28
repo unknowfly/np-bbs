@@ -1,0 +1,83 @@
+{% extends 'base.html' %}
+{% load staticfiles %}
+
+{% block content %}
+    <div class="main col-md-8">
+                    <ul class="tab-list clearfix">
+                        {% for tab in tab_list %}
+                        <li><a href="/?tab={{ tab.id }}"
+                               class="{% if current_tab == tab.id %}node-active{% endif %}">{{ tab.name }}</a></li>
+                        {% endfor %}
+                    </ul>
+                    <ul class="node-list clearfix">
+                        {% for node in tab_node_list %}
+                        <li><a href="{% url 'node_detail' node.id %}" target="_blank">{{ node.name }}</a></li>
+                        {% endfor %}
+                        
+                    </ul>
+                    <ul class="pagelist">
+                            {% if all_orgs.has_previous %}
+                            <li class="long"><a href="?{{ all_orgs.previous_page_number.querystring }}">上一页</a></li>
+                            {% else %}
+
+                            {% endif %}
+
+                            {% for page in all_orgs.pages %}
+                                {% if page %}
+                                    {% ifequal page all_orgs.number %}
+                                        <li class="active"><a href="?page=1">{{ page }}</a></li>
+                                    {% else %}
+                                        <li><a href="?{{ page.querystring }}" class="page">{{ page }}</a></li>
+                                    {% endifequal %}
+                                {% else %}
+                                    <li class="none"><a href="">...</a></li>
+                                {% endif %}
+                            {% endfor %}
+
+                            {% if all_orgs.has_next %}
+                                <li class="long"><a href="?{{ all_orgs.next_page_number.querystring }}">下一页</a></li>
+                            {% endif %}
+
+                        </ul>
+                    <ul>
+                        {% for topic in topic_list %}
+                            <li>
+                            <div class="item row">
+                                <div class="col-md-1">
+                                    <a href="{% url 'user:user_center' topic.created_by.id %}">
+                                        <img class="avatar" src="{{ MEDIA_URL }}{{ topic.created_by.image }}" alt="">
+                                    </a></div>
+                                <div class="col-md-10">
+                                    <div class="item-title">
+                                        <a href="{% url 'topic_detail' topic.id %}">{{ topic.title }}</a></div>
+                                        <small>
+                                                <a href="{% url 'user:user_center' topic.created_by.id %}"
+                                                   class="node-small">{{ topic.node.name }}</a>
+                                                <span>&nbsp;&bull;&nbsp;</span>
+                                                <strong><a href="">{{ topic.created_by.username }}</a></strong>
+                                                <span>&nbsp;&bull;&nbsp;</span>
+                                                <span>{{ topic.time_span }}</span>
+                                                {% if topic.last_reply %}
+                                                    {% for reply in  topic.last_reply %}
+                                                    <span>&nbsp;&bull;&nbsp;</span>
+                                                    <span>最后回复来自&nbsp;
+                                                        <a href="{% url 'user:user_center' reply.created_by.id %}">
+                                                            <strong>{{ reply.created_by.username }}</strong></a>
+                                                    {% endfor %}
+                                                </span>
+                                                {% endif %}
+                                        </small>
+                                </div>
+                                <div class="col-md-1">
+                                <a class="reply-nums" href="{% url 'topic_detail' topic.id %}">{{ topic.reply_set.all.count }}</a>
+                                </div>
+                            </div>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                    <div class="cell">
+                        <a href="{% url 'recent_topic' %}">查看更多新的主题</a>
+                    </div>
+                </div>
+{% endblock %}
+

@@ -1,0 +1,101 @@
+{% extends 'base.html' %}
+{% load staticfiles %}
+
+{% block title %}
+&raquo;创建主题
+{% endblock %}
+
+{% block content %}
+    <div class="main col-md-8">
+                    <div class="box">
+                        <div class="bread">
+                            <a href="{% url 'index' %}">npa</a>
+                            <span> &raquo; </span>
+                            <span>创建主题</span>
+                        </div>
+                        <div class="cell">
+                            <form action="{% url 'create_topic' %}" method="post">
+                            <div><h5>主题标题</h5></div>
+                            <div><input type="text" id="txt_topic_title" name="title" class="form-control" placeholder="请在此输入您的标题"></div>
+                            <div><h5>正文</h5></div>
+                            <div><textarea name="content" maxlength="10000" class="mll" id="txt_topic_content"
+                            style="overflow: hidden; word-wrap: break-word; resize: none;"></textarea></div>
+                            <div>
+                                <select id="txt_node" name="node">
+                                    <option value=""></option>
+                                    {% for node in node_list %}
+                                    <option value="{{ node.id }}">{{ node.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="publish-box"><input type="button" value="发布主题" class="btn btn-default" onclick="publishTopic()"></div>
+                        </form>
+                        </div>
+                    </div>
+                </div>
+{% endblock %}
+
+{% block custom_css %}
+    <link rel="stylesheet" href="{% static 'css/vendors/simplemde.min.css' %}">
+    <link rel="stylesheet" href="{% static 'css/vendors/select2.min.css' %}">
+{% endblock %}
+
+{% block custom_js %}
+    <script type="text/javascript" src="{% static 'js/vendors/simplemde.min.js' %}" ></script>
+    <script src="{% static 'js/vendors/select2.full.min.js' %}"></script>
+    <script>
+    var editor = null;
+
+    $(function () {
+        editor = new SimpleMDE({ element: $("#reply_content")[0] });
+
+        $("#txt_node").select2({
+            width: 240,
+            placeholder: '请选择一个节点'
+        });
+    })
+
+    //发布主题
+    function publishTopic () {
+        var title = $("#txt_topic_title").val();
+        var content = editor.value();
+        var node = $("#txt_node").val();
+
+        if(!$.trim(title)){
+            alert('标题不能为空');
+            return;
+        }
+
+        if(!$.trim(content)){
+            alert('内容不能为空');
+            return;
+        }
+
+        if(!$.trim(node)){
+            alert('请选择一个节点');
+            return;
+        }
+
+        $.ajax({
+            cache: false,
+            type: 'post',
+            url: '{% url "create_topic" %}',
+            data : {'title': title,
+                    'content': content,
+                    'node': node},
+            async: false,
+            beforeSend:function (xhr, settings) {
+                xhr.setRequestHeader('X-CSRFToken', '{{ csrf_token }}')
+            },
+            success:function (data) {
+                if(data.success){
+                    alert('发布成功');
+                    window.location.href = '/topic/'+data.topic_id
+                }else{
+                    alert('发布失败！')
+                }
+            }
+        })
+    }
+    </script>
+{% endblock %}

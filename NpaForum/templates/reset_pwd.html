@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+
+{% block title %}
+&raquo;找回密码
+{% endblock %}
+
+{% block content %}
+    <div class="main col-md-8">
+        <div class="box">
+            <div class="bread">
+                <a href="{% url 'index' %}">npa</a>
+                <span> &raquo; </span>
+                <span>找回密码</span>
+            </div>
+            <div class="sep20"></div>
+            {% if reset_success %}
+            <div class="text-center" style="height: 200px;">
+                <h3 class="text-blue">密码重置成功，即将跳转到登录页</h3>
+                <div class="sep20"></div>
+                <p><a href="{% url 'index' %}">返回首页</a></p>
+            </div>
+            <script>
+                setTimeout(function () {
+                    window.location.href = "{% url 'login' %}"
+                }, 4000)
+            </script>
+            {% else %}
+                <div class="msg_box">
+                {% if reset_pwd_form.errors %}
+                    <ul class="error-list">
+                    <strong>请解决以下问题后再提交</strong>
+                    {% for k, v in reset_pwd_form.errors.items %}
+                        <li class="text-red">{{ v }}</li>
+                    {% endfor %}
+                    </ul>
+                {% endif %}
+                </div>
+                <form class="form-horizontal" method="POST" action="{% url 'reset_pwd' 'reset' %}" id="reset_pwd_form">
+                      <div class="form-group">
+                        <label for="password" class="col-sm-2 control-label">新密码</label>
+                        <div class="col-sm-6">
+                          <input type="password" class="form-control" name="password" placeholder="请输入新的密码">
+                        </div>
+                      </div>
+                    <input type="hidden" value="{{ code }}" name="reset_code">
+                      <div class="form-group">
+                        <div class="col-sm-offset-2 col-sm-6">
+                          <button type="submit" class="btn btn-default">提交</button>
+                        </div>
+                      </div>
+                        {% csrf_token %}
+                    </form>
+            {% endif %}
+        </div>
+    </div>
+{% endblock %}
+

@@ -1,0 +1,140 @@
+{% extends 'base.html' %}
+{% load staticfiles %}
+
+{% block title %}
+&raquo;用户收藏
+{% endblock %}
+
+{% block content %}
+    <div class="main col-md-8">
+        <div class="box">
+        <div class="bread">
+                <a href="{% url 'index' %}">npa</a>
+                <span> &raquo; </span>
+                <span>{{ text }}</span>
+        </div>
+        {% if fav_type == 'topic' %}
+            <ul>
+            {% for topic in topic_list.object_list %}
+            <li>
+            <div class="item row">
+                <div class="col-md-1"><img class="avatar" src="{{ MEDIA_URL }}{{ topic.created_by.image }}" alt=""></div>
+                <div class="col-md-10">
+                    <div class="item-title"><a href="{% url 'topic_detail' topic.id %}">{{ topic.title }}</a></div>
+                        <small>
+                                <a href="" class="node-small">{{ topic.node.name }}</a>
+                                <span>&nbsp;&bull;&nbsp;</span>
+                                <strong><a href="">{{ topic.created_by.username }}</a></strong>
+                                <span>&nbsp;&bull;&nbsp;</span>
+                                <span>{{ topic.time_span }}</span>
+                                {% if topic.last_reply %}
+                                    {% for reply in  topic.last_reply %}
+                                    <span>&nbsp;&bull;&nbsp;</span>
+                                    <span>最后回复来自&nbsp;
+                                        <a href=""><strong>{{ reply.created_by.username }}</strong></a>
+                                    {% endfor %}
+                                </span>
+                                {% endif %}
+                        </small>
+                </div>
+                <div class="col-md-1">
+                <a class="reply-nums" href="{% url 'topic_detail' topic.id %}">{{ topic.reply_set.all.count }}</a>
+                </div>
+            </div>
+        </li>
+        {% endfor %}
+            </ul>
+            <ul class="page-list">
+                            {% if topic_list.has_previous %}
+                            <li class="page-normal"><a href="?{{ topic_list.previous_page_number.querystring }}">上一页</a></li>
+                            {% else %}
+
+                            {% endif %}
+
+                            {% for page in topic_list.pages %}
+                                {% if page %}
+                                    {% ifequal page topic_list.number %}
+                                        <li class="page-active"><a href="?page=1">{{ page }}</a></li>
+                                    {% else %}
+                                        <li class="page-normal"><a href="?{{ page.querystring }}" class="page">{{ page }}</a></li>
+                                    {% endifequal %}
+                                {% else %}
+                                    <li class="page-normal"><a href="">...</a></li>
+                                {% endif %}
+                            {% endfor %}
+
+                            {% if topic_list.has_next %}
+                                <li class="page-normal"><a href="?{{ topic_list.next_page_number.querystring }}">下一页</a></li>
+                            {% endif %}
+
+                        </ul>
+        {% elif fav_type == 'node' %}
+            <ul class="fav-node">
+                {% for node in node_list %}
+                    <li>
+                        <a href="{% url 'node_detail' node.id %}">
+                        <img class="avatar-large img-circle" src="{{ MEDIA_URL }}{{ node.image }}" alt="">
+                        <h6 class="text-center">{{ node.name }}</h6>
+                        </a>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% elif fav_type == 'user' %}
+            <ul>
+            {% for topic in topic_list.object_list %}
+            <li>
+            <div class="item row">
+                <div class="col-md-1"><img class="avatar" src="{{ MEDIA_URL }}{{ topic.created_by.image }}" alt=""></div>
+                <div class="col-md-10">
+                    <div class="item-title"><a href="{% url 'topic_detail' topic.id %}">{{ topic.title }}</a></div>
+                        <small>
+                                <a href="" class="node-small">{{ topic.node.name }}</a>
+                                <span>&nbsp;&bull;&nbsp;</span>
+                                <strong><a href="">{{ topic.created_by.username }}</a></strong>
+                                <span>&nbsp;&bull;&nbsp;</span>
+                                <span>{{ topic.time_span }}</span>
+                                {% if topic.last_reply %}
+                                    {% for reply in  topic.last_reply %}
+                                    <span>&nbsp;&bull;&nbsp;</span>
+                                    <span>最后回复来自&nbsp;
+                                        <a href=""><strong>{{ reply.created_by.username }}</strong></a>
+                                    {% endfor %}
+                                </span>
+                                {% endif %}
+                        </small>
+                </div>
+                <div class="col-md-1">
+                <a class="reply-nums" href="{% url 'topic_detail' topic.id %}">{{ topic.reply_set.all.count }}</a>
+                </div>
+            </div>
+        </li>
+        {% endfor %}
+            </ul>
+            <ul class="page-list">
+                            {% if topic_list.has_previous %}
+                            <li class="page-normal"><a href="?{{ topic_list.previous_page_number.querystring }}">上一页</a></li>
+                            {% else %}
+
+                            {% endif %}
+
+                            {% for page in topic_list.pages %}
+                                {% if page %}
+                                    {% ifequal page topic_list.number %}
+                                        <li class="page-active"><a href="?page=1">{{ page }}</a></li>
+                                    {% else %}
+                                        <li class="page-normal"><a href="?{{ page.querystring }}" class="page">{{ page }}</a></li>
+                                    {% endifequal %}
+                                {% else %}
+                                    <li class="page-normal"><a href="">...</a></li>
+                                {% endif %}
+                            {% endfor %}
+
+                            {% if topic_list.has_next %}
+                                <li class="page-normal"><a href="?{{ topic_list.next_page_number.querystring }}">下一页</a></li>
+                            {% endif %}
+
+                        </ul>
+        {% endif %}
+        </div>
+    </div>
+{% endblock %}
