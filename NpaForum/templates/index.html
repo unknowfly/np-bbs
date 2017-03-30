@@ -51,10 +51,10 @@
                                     <div class="item-title">
                                         <a href="{% url 'topic_detail' topic.id %}">{{ topic.title }}</a></div>
                                         <small>
-                                                <a href="{% url 'user:user_center' topic.created_by.id %}"
+                                                <a href="{% url 'node_detail' topic.node.id %}"
                                                    class="node-small">{{ topic.node.name }}</a>
                                                 <span>&nbsp;&bull;&nbsp;</span>
-                                                <strong><a href="">{{ topic.created_by.username }}</a></strong>
+                                                <strong><a href="{% url 'user:user_center' topic.created_by.id %}">{{ topic.created_by.username }}</a></strong>
                                                 <span>&nbsp;&bull;&nbsp;</span>
                                                 <span>{{ topic.time_span }}</span>
                                                 {% if topic.last_reply %}
